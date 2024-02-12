@@ -36,9 +36,18 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  const dataArr = [];
 
-  fs.readDir
+  fs.readdir('./test/testData', (err, files) => {
+    if (err) {
+      callback(err);
+    } else {
+      const todos = files.map((file) => {
+        const id = path.basename(file, '.txt');
+        return { id, text: id };
+      });
+      callback(null, todos);
+    }
+  });
   // var data = _.map(items, (text, id) => {
   //   return { id, text };
   // });
