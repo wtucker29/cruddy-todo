@@ -8,16 +8,41 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId();
-  items[id] = text;
-  callback(null, { id, text });
+  counter.getNextUniqueId((err, id) => {
+    if (err) {
+      callback(err);
+    } else {
+      const filePath = path.join('test', 'testData', id + '.txt');
+      fs.writeFile(filePath, text, (err) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, { id, text });
+        }
+      });
+    }
+  });
+  // Use new getNextUniqueId function to find our id
+  // Create a filepath using path.join() for each unique id. path.join(__dirname, 'data', id + '.txt')? This should output something like /datastore/data/00001.txt for first todo
+  // Only add the text to the file since the id is encoded into filename
+  // Use fs.writeFile() to do this. fs.writeFile(path, data = text, callback)
+
+
+
+
+  // var id = counter.getNextUniqueId();
+  // items[id] = text;
+  // callback(null, { id, text });
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
-  });
-  callback(null, data);
+  const dataArr = [];
+
+  fs.readDir
+  // var data = _.map(items, (text, id) => {
+  //   return { id, text };
+  // });
+  // callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
