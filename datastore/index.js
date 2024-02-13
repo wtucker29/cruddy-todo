@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
 var items = {};
 
@@ -22,33 +24,43 @@ exports.create = (text, callback) => {
       });
     }
   });
-  // Use new getNextUniqueId function to find our id
-  // Create a filepath using path.join() for each unique id. path.join(__dirname, 'data', id + '.txt')? This should output something like /datastore/data/00001.txt for first todo
-  // Only add the text to the file since the id is encoded into filename
-  // Use fs.writeFile() to do this. fs.writeFile(path, data = text, callback)
-
-
-
-
-  // var id = counter.getNextUniqueId();
-  // items[id] = text;
-  // callback(null, { id, text });
 };
+
 
 exports.readAll = (callback) => {
 
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
       callback(err);
-    } else {
-      const todos = files.map((file) => {
-        const id = path.basename(file, '.txt');
-        return { id, text: id };
-      });
-      callback(null, todos);
+      return;
     }
+
+    if (files.length === 0) {
+      callback(null, []);
+      return;
+    }
+    const todos = [];
+    let fileCount = 0;
+
+    files.forEach((file) => {
+      const id = path.basename(file, '.txt');
+      const filePath = path.join(exports.dataDir, file);
+      fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+          callback(err);
+          return;
+        }
+        todos.push({ id, text: data });
+        fileCount++;
+        if (fileCount === files.length) {
+          callback(null, todos);
+        }
+      });
+    });
   });
 };
+
+var readAllAsync = Promise.promisify(exports.readAll);
 
 exports.readOne = (id, callback) => {
 
