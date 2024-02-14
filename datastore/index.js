@@ -20,7 +20,7 @@ create = (text, callback) => {
       const updateTime = createTime;
       const todo = { id, text, createTime, updateTime };
       const filePath = path.join(exports.dataDir, id + '.txt');
-      fs.writeFile(filePath, text, (err) => {
+      fs.writeFile(filePath, JSON.stringify(todo), (err) => {
         if (err) {
           callback(err);
         } else {
@@ -77,7 +77,8 @@ readOne = (id, callback) => {
     if (err) {
       callback(err);
     } else {
-      callback(null, { id, text: data });
+      let todo = JSON.parse(data);
+      callback(null, todo);
     }
   });
 
@@ -98,15 +99,29 @@ update = (id, text, callback) => {
   fs.exists(filePath, (exists) => {
     if (!exists) {
       callback(new Error('Todo item with ID of ${id} does not exist'));
-    } else {
-      fs.writeFile(filePath, text, (err) => {
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, { id, text });
-        }
-      });
     }
+
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      try {
+        let todo = JSON.parse(data);
+        todo.text = text;
+        todo.updateTime = new Date().toString();
+        fs.writeFile(filePath, JSON.stringify(todo), (err) => {
+          if (err) {
+            callback(err);
+          } else {
+            callback(null, todo);
+          }
+        });
+      } catch (err) {
+        callback(err);
+      }
+    });
   });
 
   // var item = items[id];
