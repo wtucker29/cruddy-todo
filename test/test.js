@@ -68,10 +68,10 @@ describe('todos', () => {
 
   describe('create', () => {
     it('should create a new file for each todo', (done) => {
-      todos.create('todo1', (err, data) => {
+      todos.createAsync('todo1', (err, data) => {
         const todoCount = fs.readdirSync(todos.dataDir).length;
         expect(todoCount).to.equal(1);
-        todos.create('todo2', (err, data) => {
+        todos.createAsync('todo2', (err, data) => {
           expect(fs.readdirSync(todos.dataDir)).to.have.lengthOf(2);
           done();
         });
@@ -80,7 +80,7 @@ describe('todos', () => {
 
     it('should use the generated unique id as the filename', (done) => {
       fs.writeFileSync(counter.counterFile, '00142');
-      todos.create('buy fireworks', (err, todo) => {
+      todos.createAsync('buy fireworks', (err, todo) => {
         const todoExists = fs.existsSync(path.join(todos.dataDir, '00143.txt'));
         expect(todoExists).to.be.true;
         done();
@@ -89,7 +89,7 @@ describe('todos', () => {
 
     it('should only save todo text contents in file', (done) => {
       const todoText = 'walk the dog';
-      todos.create(todoText, (err, todo) => {
+      todos.createAsync(todoText, (err, todo) => {
         const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todo.id}.txt`)).toString();
         expect(todoFileContents).to.equal(todoText);
         done();
@@ -98,7 +98,7 @@ describe('todos', () => {
 
     it('should pass a todo object to the callback on success', (done) => {
       const todoText = 'refactor callbacks to promises';
-      todos.create(todoText, (err, todo) => {
+      todos.createAsync(todoText, (err, todo) => {
         expect(todo).to.include({ text: todoText });
         expect(todo).to.have.property('id');
         done();
@@ -108,7 +108,7 @@ describe('todos', () => {
 
   describe('readAll', () => {
     it('should return an empty array when there are no todos', (done) => {
-      todos.readAll((err, todoList) => {
+      todos.readAllAsync((err, todoList) => {
         expect(err).to.be.null;
         expect(todoList.length).to.equal(0);
         done();
@@ -120,9 +120,9 @@ describe('todos', () => {
       const todo1text = 'todo 1';
       const todo2text = 'todo 2';
       const expectedTodoList = [{ id: '00001', text: todo1text }, { id: '00002', text: todo2text }];
-      todos.create(todo1text, (err, todo) => {
-        todos.create(todo2text, (err, todo) => {
-          todos.readAll((err, todoList) => {
+      todos.createAsync(todo1text, (err, todo) => {
+        todos.createAsync(todo2text, (err, todo) => {
+          todos.readAllAsync((err, todoList) => {
             expect(todoList).to.have.lengthOf(2);
             expect(todoList).to.deep.include.members(expectedTodoList, 'NOTE: Text field should use the Id initially');
             done();
@@ -135,7 +135,7 @@ describe('todos', () => {
 
   describe('readOne', () => {
     it('should return an error for non-existant todo', (done) => {
-      todos.readOne('notAnId', (err, todo) => {
+      todos.readOneAsync('notAnId', (err, todo) => {
         expect(err).to.exist;
         done();
       });
@@ -143,9 +143,9 @@ describe('todos', () => {
 
     it('should find a todo by id', (done) => {
       const todoText = 'buy chocolate';
-      todos.create(todoText, (err, createdTodo) => {
+      todos.createAsync(todoText, (err, createdTodo) => {
         const id = createdTodo.id;
-        todos.readOne(id, (err, readTodo) => {
+        todos.readOneAsync(id, (err, readTodo) => {
           expect(readTodo).to.deep.equal({ id, text: todoText });
           done();
         });
@@ -155,11 +155,11 @@ describe('todos', () => {
 
   describe('update', () => {
     beforeEach((done) => {
-      todos.create('original todo', done);
+      todos.createAsync('original todo', done);
     });
 
     it('should not change the counter', (done) => {
-      todos.update('00001', 'updated todo', (err, todo) => {
+      todos.updateAsync('00001', 'updated todo', (err, todo) => {
         const counterFileContents = fs.readFileSync(counter.counterFile).toString();
         expect(counterFileContents).to.equal('00001');
         done();
@@ -169,7 +169,7 @@ describe('todos', () => {
     it('should update the todo text for existing todo', (done) => {
       const todoId = '00001';
       const updatedTodoText = 'updated todo';
-      todos.update(todoId, updatedTodoText, (err, todo) => {
+      todos.updateAsync(todoId, updatedTodoText, (err, todo) => {
         const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todoId}.txt`)).toString();
         expect(todoFileContents).to.equal(updatedTodoText);
         done();
@@ -178,7 +178,7 @@ describe('todos', () => {
 
     it('should not create a new todo for non-existant id', (done) => {
       const initalTodoCount = fs.readdirSync(todos.dataDir).length;
-      todos.update('00017', 'bad id', (err, todo) => {
+      todos.updateAsync('00017', 'bad id', (err, todo) => {
         const currentTodoCount = fs.readdirSync(todos.dataDir).length;
         expect(currentTodoCount).to.equal(initalTodoCount);
         expect(err).to.exist;
@@ -189,11 +189,11 @@ describe('todos', () => {
 
   describe('delete', () => {
     beforeEach((done) => {
-      todos.create('delete this todo', done);
+      todos.createAsync('delete this todo', done);
     });
 
     it('should not change the counter', (done) => {
-      todos.delete('00001', (err) => {
+      todos.deleteOneAsync('00001', (err) => {
         const counterFileContents = fs.readFileSync(counter.counterFile).toString();
         expect(counterFileContents).to.equal('00001');
         done();
@@ -201,7 +201,7 @@ describe('todos', () => {
     });
 
     it('should delete todo file by id', (done) => {
-      todos.delete('00001', (err) => {
+      todos.deleteOneAsync('00001', (err) => {
         const todoExists = fs.existsSync(path.join(todos.dataDir, '00001.txt'));
         expect(todoExists).to.be.false;
         done();
@@ -210,7 +210,7 @@ describe('todos', () => {
 
     it('should return an error for non-existant id', (done) => {
       const initalTodoCount = fs.readdirSync(todos.dataDir).length;
-      todos.delete('07829', (err) => {
+      todos.deleteOneAsync('07829', (err) => {
         const currentTodoCount = fs.readdirSync(todos.dataDir).length;
         expect(currentTodoCount).to.equal(initalTodoCount);
         expect(err).to.exist;

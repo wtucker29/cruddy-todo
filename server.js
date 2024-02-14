@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, './public')));
 
 // Create (Crud) -- collection route
 app.post('/todo', (req, res) => {
-  Todo.create(req.body.todoText, (err, newTodo) => {
+  Todo.createAsync(req.body.todoText, (err, newTodo) => {
     if (err) {
       res.sendStatus(400);
     } else {
@@ -30,7 +30,7 @@ app.post('/todo', (req, res) => {
 
 // Read all (cRud) -- collection route
 app.get('/todo', (req, res) => {
-  Todo.readAll((err, todos) => {
+  Todo.readAllAsync((err, todos) => {
     if (err) {
       res.sendStatus(400);
     } else {
@@ -41,7 +41,7 @@ app.get('/todo', (req, res) => {
 
 // Read one (cRud) -- member route
 app.get('/todo/:id', (req, res) => {
-  Todo.readOne(req.params.id, (err, todo) => {
+  Todo.readOneAsync(req.params.id, (err, todo) => {
     if (todo) {
       res.status(200).json(todo);
     } else {
@@ -52,7 +52,7 @@ app.get('/todo/:id', (req, res) => {
 
 // Update (crUd) -- member route
 app.put('/todo/:id', (req, res) => {
-  Todo.update(req.params.id, req.body.todoText, (err, todo) => {
+  Todo.updateAsync(req.params.id, req.body.todoText, (err, todo) => {
     if (todo) {
       res.status(200).json(todo);
     } else {
@@ -63,7 +63,7 @@ app.put('/todo/:id', (req, res) => {
 
 // Delete (cruD) -- member route
 app.delete('/todo/:id', (req, res) => {
-  Todo.delete(req.params.id, (err) => {
+  Todo.deleteOneAsync(req.params.id, (err) => {
     if (err) {
       res.sendStatus(404);
     } else {

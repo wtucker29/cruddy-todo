@@ -9,25 +9,32 @@ var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
-exports.create = (text, callback) => {
+create = (text, callback) => {
+
   counter.getNextUniqueId((err, id) => {
     if (err) {
       callback(err);
     } else {
-      const filePath = path.join('test', 'testData', id + '.txt');
+      // create a createTime and updateTime variable
+      const createTime = new Date().toString();
+      const updateTime = createTime;
+      const todo = { id, text, createTime, updateTime };
+      const filePath = path.join(exports.dataDir, id + '.txt');
       fs.writeFile(filePath, text, (err) => {
         if (err) {
           callback(err);
         } else {
-          callback(null, { id, text });
+          callback(null, todo);
         }
       });
     }
   });
 };
 
+exports.createAsync = Promise.promisify(create);
 
-exports.readAll = (callback) => {
+
+readAll = (callback) => {
 
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
@@ -60,9 +67,9 @@ exports.readAll = (callback) => {
   });
 };
 
-var readAllAsync = Promise.promisify(exports.readAll);
+exports.readAllAsync = Promise.promisify(readAll);
 
-exports.readOne = (id, callback) => {
+readOne = (id, callback) => {
 
   var path = exports.dataDir + '/' + id + '.txt';
 
@@ -82,7 +89,9 @@ exports.readOne = (id, callback) => {
   // }
 };
 
-exports.update = (id, text, callback) => {
+exports.readOneAsync = Promise.promisify(readOne);
+
+update = (id, text, callback) => {
 
   const filePath = path.join(exports.dataDir, id + '.txt');
 
@@ -109,7 +118,9 @@ exports.update = (id, text, callback) => {
   // }
 };
 
-exports.delete = (id, callback) => {
+exports.updateAsync = Promise.promisify(update);
+
+deleteOne = (id, callback) => {
 
   const filePath = path.join(exports.dataDir, id + '.txt');
 
@@ -130,6 +141,8 @@ exports.delete = (id, callback) => {
   //   callback();
   // }
 };
+
+exports.deleteOneAsync = Promise.promisify(deleteOne);
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
